@@ -1,1 +1,4 @@
-# Communication Subpackage
+from .bus import OmniBus
+
+__all__ = ["OmniBus"]
+
