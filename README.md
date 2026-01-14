@@ -49,6 +49,9 @@ Bizim vizyonumuzda, mühendisin görevi artık doğrudan "kod yazmak" (the craft
 
 ---
 
+
+![Organic Growth](assets/vision_organic_growth.png)
+
 ## 🧠 Temel Felsefe
 
 Geleneksel mühendislik süreçleri lineer, ardışık ve öngörülebilirdir; Meta-mühendislik ise **eksponansiyel**, **kaotik** ve **adaptiftir**. Bu paradigma değişimi, mühendisliğin temel aksiyomlarının yeniden yazılmasını gerektirir.
@@ -64,6 +67,9 @@ Geleneksel projeler bir bina gibi tuğla tuğla, önceden belirlenmiş katı bir
 2.  **Meta Yaklaşım:** Sorun tanımlanır ve sisteme "Niyet" (Intent) olarak verilir -> Meta-Sistem problemi semantik olarak analiz eder -> Otonom ajan sürüleri (Agent Swarms) paralel evrenlerde binlerce çözüm simüle eder -> En optimal çözüm seçilir ve uygulanır -> İnsan sadece onay mekanizmasında (Human-in-the-loop) yer alır.
 
 ---
+
+
+![Hive Mind](assets/architecture_hive_mind.png)
 
 ## 📐 Mimari ve Akış (Architecture & Flow)
 
@@ -116,6 +122,9 @@ Bütün sistemin omurgasıdır. Ajanlar birbirleriyle asla doğrudan konuşmazla
 Sistemin geçmişi hatırlamasını ve bağlamı korumasını sağlayan katmandır. İki ana bileşenden oluşur:
 - **Short-term Memory (Working Context):** Redis üzerinde tutulan anlık görev bilgisi. "Şu an hangi dosya üzerinde çalışıyorum?"
 - **Long-term Memory (Episodic Storage):** Pinecone/Milvus vektör veritabanı. "Geçen ay benzer bir hatayı nasıl çözmüştük?" sorusunun cevabını semantik arama ile bulur.
+
+
+![Agent Swarm](assets/agents_swarm.png)
 
 ### 🐝 Katman 4: Ajan Sürüsü (The Agent Swarm)
 *A.k.a. Neural Fabric*
@@ -228,6 +237,9 @@ Trafik yüküne, siber saldırı tiplerine veya değişen kullanıcı davranış
 
 ## 🛡️ Güvenlik ve Protokoller
 
+
+![Neural Firewall](assets/security_neural_firewall.png)
+
 Otonom sistemlerin (Autonomous Systems) gücü, beraberinde büyük varoluşsal ve operasyonel riskler getirir. Güvenlik, bu sistemlerde "isteğe bağlı" bir özellik değil, mimarinin en temel taşıdır (Security by Design).
 
 ### 🔥 Neural Firewalls (Yapay Sinir Güvenlik Duvarları)
@@ -338,6 +350,9 @@ Vizyonumuzun tamamını ve temel inançlarımızı okumak için:
 👉 **[Meta-Mühendislik Manifestosu](manifestosu.md)**
 
 ---
+
+
+![Singularity](assets/future_singularity.png)
 
 ## 🗺️ Yol Haritası (Roadmap)
 
