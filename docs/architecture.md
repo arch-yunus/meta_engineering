@@ -1,31 +1,134 @@
-# Meta-Mühendislik Sistem Mimarisi
+# 🏗️ Meta-Engineering System Architecture & Engineering Specs
 
-## Genel Bakış
-Sistem, biyolojik metaforlar üzerine kurulmuş hibrit bir yapay zeka orkestrasyon motorudur.
+> **Status:** Draft / Active Development
+> **Classification:** Deep Technical
 
-## Bileşenler
+This document provides the low-level engineering specificiations, data structures, and architectural decisions that power the Meta-Engineering ecosystem. It is intended for core contributors and system architects.
 
-### 1. Omni-Bus (Sinir Sistemi)
-Tüm sistemin bel kemiğidir. Event-driven (Olay güdümlü) bir yapı sunar.
-- **Publish/Subscribe Modeli:** Bileşenler birbirini tanımaz, sadece kanallara abone olur.
-- **Asenkron İletişim:** Ajanlar bloklanmadan çalışır.
+---
 
-### 2. Ajan Sürüsü (Agent Swarm)
-Özelleşmiş LLM tabanlı işçiler.
-- **Architect:** Planlama ve üst seviye tasarım.
-- **Coder:** Uygulama ve kod üretimi.
-- **Reviewer:** Kalite kontrol ve güvenlik.
+## 1. The Omni-Bus (Events & Messaging)
 
-### 3. Hafıza Izgarası (Memory Grid)
-- **Kısa Süreli Hafıza:** Python dictionary tabanlı, RAM üzerinde yaşayan, process ömrüyle sınırlı hafıza.
-- **Uzun Süreli Hafıza:** Vektör tabanlı semantik hafıza simülasyonu.
+The Omni-Bus is an asynchronous, event-driven backbone responsible for all inter-agent communication. It prevents tight coupling between agents and allows for massive horizontal scaling.
 
-### 4. Plugin Sistemi
-Dışarıdan kod yüklemeye izin veren dinamik genişleme katmanı. `plugins/` klasörüne atılan `.py` dosyalarını otomatik tarar ve yükler.
+### 1.1 Messaging Topology
+We utilize a **Publish-Subscribe (Pub/Sub)** topology.
+- **Topics:**
+    - `system.nerves.global` (Broadcasts, Heartbeats)
+    - `agent.coder.inbox` (Tasks for Coder)
+    - `agent.reviewer.inbox` (Tasks for Reviewer)
+    - `system.audit.logs` (Immutable storage for debugging)
 
-## Veri Akışı
-1. **Niyet (Intent):** Kullanıcıdan gelir.
-2. **Planlama:** Architect niyeti parçalar.
-3. **Dağıtım:** Planlar Omni-Bus üzerinden Coder'a gider.
-4. **Üretim:** Coder kodu yazar ve Reviewer'a gönderir.
-5. **Onay:** Reviewer onaylarsa kod sisteme entegre edilir.
+### 1.2 Event Schema (JSON)
+Every event flowing through the system MUST adhere to strict schema validation.
+
+```jsonc
+{
+  "event_id": "550e8400-e29b-41d4-a716-446655440000",
+  "correlation_id": "parent-task-uuid", // Tracks the "Chain of Thought"
+  "timestamp": 1698421005.123,
+  "priority": "HIGH | NORMAL | LOW",
+  "producer": {
+    "agent_id": "architect-01",
+    "version": "1.0.0"
+  },
+  "payload": {
+    "type": "CodeGenerationRequest",
+    "data": {
+      "language": "python",
+      "requirements": ["Create a class...", "Use Pydantic..."]
+    }
+  },
+  "security": {
+    "signature": "sha256:...",
+    "acl_token": "..."
+  }
+}
+```
+
+---
+
+## 2. The Memory Grid (Context Management)
+
+Memory is the singular differentiator between a "script" and an "entity". Our memory architecture is tiered, mimicking biological systems.
+
+### 2.1 Short-Term Memory (STM)
+- **Technology:** Redis (In-Memory Key-Value Store)
+- **Volatile:** Survives only as long as the active task/session.
+- **Structure:**
+    - `session:{id}:context` -> JSON Blob of current file tree state.
+    - `session:{id}:history` -> List of last 10 chat messages.
+- **Eviction Policy:** LRU (Least Recently Used).
+
+### 2.2 Long-Term Memory (LTM)
+- **Technology:** Pinecone / Milvus (Vector Database)
+- **Persistent:** Survives forever.
+- **Embedding Model:** OpenAI `text-embedding-ada-002` or open-source `all-MiniLM-L6-v2`.
+- **Vector Dimension:** 1536 (Ada) or 384 (MiniLM).
+- **Index Type:** HNSW (Hierarchical Navigable Small World) for sub-millisecond approximate nearest neighbor search.
+
+#### LTM Data Schema
+```json
+{
+  "id": "vector-uuid",
+  "values": [0.12, -0.05, ...], // The embedding vector
+  "metadata": {
+    "type": "code_snippet",
+    "language": "python",
+    "success_rating": 0.95, // Reinforcement learning feedback
+    "file_path": "core/utils.py",
+    "content_hash": "md5..."
+  }
+}
+```
+
+---
+
+## 3. Agent Lifecycle & State Machine
+
+Each agent operates as a Finite State Machine (FSM).
+
+### 3.1 States
+1.  **IDLE:** Waiting for a message on the Omni-Bus. Consumes minimal resources.
+2.  **ANALYZING:** Parsing the incoming task, retrieving context from Memory Grid.
+3.  **THINKING (LLM Inference):** Sending prompts to the LLM core and waiting for tokens.
+4.  **ACTING:** Executing tools (Writing file, running terminal command).
+5.  **REPORTING:** Formatting the result and publishing back to Omni-Bus.
+6.  **ERROR:** State when an unrecoverable exception occurs (triggers Overseer intervention).
+
+### 3.2 Resilience (Fault Tolerance)
+- **Watchdogs:** A supervisor process pings agents every 500ms. If an agent hangs (STATE=THINKING > 60s), it is killed and respawned.
+- **Dead Letter Queues (DLQ):** Messages that cause agents to crash are moved to a DLQ for human inspection, preventing infinite crash loops.
+
+---
+
+## 4. Plugin System Specs
+
+The plugin system allows dynamic runtime extension of the core capabilities.
+
+### 4.1 Discovery Mechanism
+- On startup, the `PluginManager` scans the `/plugins` directory.
+- It looks for a `manifest.json` in each subdirectory.
+- It validates the signature of the plugin (Security check).
+
+### 4.2 Hook Points
+Plugins can intercept and modify system behavior at these standardized hooks:
+- `HOOK_PRE_PROMPT`: Modify the prompt before it goes to the LLM.
+- `HOOK_POST_GENERATION`: Modify the text generated by the LLM.
+- `HOOK_ON_TOOL_CALL`: Intercept tool execution (e.g., for security filtering).
+
+---
+
+## 5. Security Architecture (Deep Dive)
+
+### 5.1 The Neural Firewall
+A specialized, fine-tuned classifier model that scores every output.
+- **Input:** Generated Code + Intent.
+- **Output:** Safety Score (0.0 - 1.0).
+- **Threshold:** Anything below 0.9 is rejected automatically.
+
+### 5.2 Sandboxing
+- All code execution happens inside ephemeral Docker containers.
+- **Network:** No internet access (unless explicitly whitelisted).
+- **Filesystem:** Read-only root, ephemeral `/tmp`.
+- **Resources:** CPU and RAM capped via cgroups.
