@@ -444,13 +444,15 @@ Bu projenin mimarı, hayalperesti ve ilk kodu yazan geliştiricisi hakkında bil
 
 <div align="center">
 
-| 🏷️ Bilgi | 📄 Detay |
+| �️ Kurumsal Kimlik | 📄 Detaylar |
 | :--- | :--- |
-| **Adı Soyadı** | **Bahattin Yunus Çetin** |
-| **Unvan** | IT Architect & Meta-Engineer |
-| **Eğitim/Konum** | Trabzon Of - Üniversite Öğrencisi |
-| **GitHub** | [![GitHub](https://img.shields.io/badge/GitHub-byc--core-black?style=flat-square&logo=github)](https://github.com/byc-core) |
-| **LinkedIn** | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Bahattin%20Yunus%20Çetin-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/bahattinyunus/) |
+| **Mimar** | **Bahattin Yunus Çetin** |
+| **Unvan** | **IT Architect** & Meta-System Designer |
+| **Akademik Merkez** | Trabzon / Of - Üniversite Öğrencisi |
+| **Köken (Menşei)** | Şereflikoçhisar |
+| **Profesyonel Ağ** | [![GitHub](https://img.shields.io/badge/GitHub-bahattinyunus-181717?style=for-the-badge&logo=github)](https://github.com/bahattinyunus) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Bahattin%20Yunus%20Çetin-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/bahattinyunus/) |
+
+*"Şereflikoçhisar'ın dijital vizyonunu, Of'un akademik disipliniyle birleştiren teknoloji mimarı."*
 
 </div>
 
