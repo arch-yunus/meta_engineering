@@ -21,7 +21,9 @@ class BaseAgent(ABC):
         self.role = role
         self.memory = []  # Short-term local memory
         from .llm import get_llm_engine
+        from ..memory import MemoryGrid
         self.llm = get_llm_engine()
+        self.grid = MemoryGrid()
         
     def generate_thought(self, prompt: str, system_message: Optional[str] = None) -> str:
         """Helper to generate a response from the LLM Engine."""

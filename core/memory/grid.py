@@ -16,31 +16,56 @@ class ShortTermMemory:
     def clear(self):
         self._store.clear()
 
+import os
+import uuid
+import chromadb
+
 class LongTermMemory:
     """
-    Mock implementation of a Vector Database interface.
-    In a full production system, this would connect to Pinecone or Milvus.
+    Real implementation of a Vector Database interface using ChromaDB.
     """
-    def __init__(self):
-        self.vectors = []
+    def __init__(self, db_path: str = "workspace/chroma_db"):
+        os.makedirs(db_path, exist_ok=True)
+        self.client = chromadb.PersistentClient(path=os.path.abspath(db_path))
+        self.collection = self.client.get_or_create_collection(name="episodic_memory")
 
-    def store_memory(self, text: str, metadata: Dict[str, Any] = None):
-        """Simulate storing a semantic vector."""
-        # In reality, we would generate an embedding here.
-        entry = {
-            "id": len(self.vectors) + 1,
-            "text": text,
-            "metadata": metadata or {},
-            "timestamp": time.time()
-        }
-        self.vectors.append(entry)
-        return entry["id"]
+    def store_memory(self, text: str, metadata: Optional[Dict[str, Any]] = None):
+        """Store a semantic vector."""
+        # ChromaDB automatically generates embeddings using the default embedding function
+        doc_id = str(uuid.uuid4())
+        
+        meta = metadata or {}
+        # ChromaDB metadata values must be str, int, float or bool
+        cleaned_meta = {k: v for k, v in meta.items() if isinstance(v, (str, int, float, bool))}
+        cleaned_meta["timestamp"] = time.time()
+        
+        self.collection.add(
+            documents=[text],
+            metadatas=[cleaned_meta],
+            ids=[doc_id]
+        )
+        return doc_id
 
     def retrieve_similar(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
-        """Simulate semantic retrieval."""
-        # For this prototype, we just do a simple keyword match
-        results = [v for v in self.vectors if query.lower() in v["text"].lower()]
-        return results[:limit]
+        """Semantic retrieval using vector embeddings."""
+        # If collection is empty, chroma might error on query, so we handle safely
+        if self.collection.count() == 0:
+            return []
+            
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=min(limit, self.collection.count())
+        )
+        
+        parsed_results = []
+        if results['documents'] and len(results['documents']) > 0:
+            for i in range(len(results['documents'][0])):
+                parsed_results.append({
+                    "id": results['ids'][0][i],
+                    "text": results['documents'][0][i],
+                    "metadata": results['metadatas'][0][i] if results['metadatas'] else {}
+                })
+        return parsed_results
 
 class MemoryGrid:
     """Facade for the entire memory system."""
