@@ -95,21 +95,23 @@ def run_autonomous_mode():
 
 def perform_agent_task(agent, message):
     """Helper to bridge pub/sub message to agent logic"""
-    # Simple simulation logic
     if agent.role == "Coder" and "task" in message:
         res = agent.think({"task": message["task"]})
-        act_res = agent.act(res.payload)
-        OmniBus().publish("code_review", {"sender": agent.name, "content": act_res.payload})
+        if res.status == "success":
+            act_res = agent.act(res.payload)
+            # Publish the result including the file_path if available
+            bus = OmniBus()
+            bus.publish("code_review", {
+                "sender": agent.name, 
+                "content": act_res.payload,
+                "file_path": act_res.metadata.get("file_path") if act_res.metadata else None
+            })
         
-    elif agent.role == "Reviewer" and "code" in message: # Corrected from "content" to "code" based on previous dispatch
-        # The message content from Coder act() is in message["content"] if passed directly, 
-        # but here we need to be careful about what key we look for.
-        # In on_code_generated, we published to "code_review" with key "code".
-        # But in the lambda above `lambda msg: perform_agent_task(reviewer, msg)` we pass the message directly.
-        # Let's align keys.
-        
+    elif agent.role == "Reviewer":
+        file_path = message.get("file_path")
         code_to_review = message.get("code") or message.get("content")
-        res = agent.think({"code": code_to_review})
+        
+        res = agent.think({"code": code_to_review, "file_path": file_path})
         act_res = agent.act(res.payload)
         OmniBus().publish("reviews", {"sender": agent.name, "content": act_res.payload})
 

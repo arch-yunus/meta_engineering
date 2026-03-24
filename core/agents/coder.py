@@ -8,6 +8,8 @@ class CoderAgent(BaseAgent):
     """
     def __init__(self, name: str = "Coder-01"):
         super().__init__(name, role="Coder")
+        from ..fabrication import get_sandbox
+        self.sandbox = get_sandbox()
 
     def think(self, context: Dict[str, Any]) -> AgentResult:
         """
@@ -21,15 +23,23 @@ class CoderAgent(BaseAgent):
         return AgentResult(
             payload=code,
             status="success",
-            metadata={"language": "python"}
+            metadata={"language": "python", "task_name": task.lower().replace(" ", "_")}
         )
 
     def act(self, action_plan: Any) -> AgentResult:
         """
-        Execute the writing of code to a specific location (mock).
+        Execute the writing of code to the sandbox.
         """
-        # In this simplified version, 'act' returns the code directly.
-        return AgentResult(payload=action_plan, status="success")
+        code = action_plan
+        # For this prototype, we just name it based on timestamp or a simple counter
+        filename = f"generated_module.py"
+        file_path = self.sandbox.write_artifact(filename, code)
+        
+        return AgentResult(
+            payload=f"File successfully created at: {file_path}", 
+            status="success",
+            metadata={"file_path": file_path}
+        )
 
     def _generate_add_function(self) -> str:
         return """

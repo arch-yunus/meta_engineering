@@ -8,15 +8,26 @@ class ReviewerAgent(BaseAgent):
     """
     def __init__(self, name: str = "Reviewer-01"):
         super().__init__(name, role="Reviewer")
+        from ..fabrication import get_sandbox
+        self.sandbox = get_sandbox()
 
     def think(self, context: Dict[str, Any]) -> AgentResult:
+        file_path = context.get("file_path")
         code_to_review = context.get("code", "")
-        if not code_to_review:
-             return AgentResult(payload=None, status="failure", error="No code to review")
-
-        prompt = f"Review the following Python code for security, performance, and best practices: \n\n{code_to_review}\n\nProvide a concise bulleted review."
-        review_result = self.generate_thought(prompt)
         
+        if file_path:
+            # Perform physical verification in sandbox
+            res = self.sandbox.run_tests(file_path)
+            if res["status"] == "success":
+                review_result = f"FABRICATION SUCCESS: {res['message']}"
+            else:
+                review_result = f"FABRICATION FAILURE: {res['error']}"
+        elif code_to_review:
+            prompt = f"Review the following Python code for security, performance, and best practices: \n\n{code_to_review}\n\nProvide a concise bulleted review."
+            review_result = self.generate_thought(prompt)
+        else:
+             return AgentResult(payload=None, status="failure", error="No code or file to review")
+
         return AgentResult(
             payload=review_result,
             status="success"
