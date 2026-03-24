@@ -455,11 +455,10 @@ Bu projenin mimarı, hayalperesti ve ilk kodu yazan geliştiricisi hakkında bil
 | :--- | :--- |
 | **Mimar** | **Bahattin Yunus Çetin** |
 | **Unvan** | **IT Architect** & Meta-System Designer |
-| **Akademik Merkez** | Trabzon / Of - Üniversite Öğrencisi |
-| **Köken (Menşei)** | Şereflikoçhisar |
+| **Akademik Merkez** | Üniversite Öğrencisi |
 | **Profesyonel Ağ** | [![GitHub](https://img.shields.io/badge/GitHub-bahattinyunus-181717?style=for-the-badge&logo=github)](https://github.com/bahattinyunus) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Bahattin%20Yunus%20Çetin-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/bahattinyunus/) |
 
-*"Şereflikoçhisar'ın dijital vizyonunu, Of'un akademik disipliniyle birleştiren teknoloji mimarı."*
+*"Geleceğin otonom sistemlerini bugünden inşa eden teknoloji mimarı."*
 
 </div>
 
