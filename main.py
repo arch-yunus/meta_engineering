@@ -18,7 +18,7 @@ def main():
     
     args = parser.parse_args()
 
-    print("\n🌌 Meta-Engineering System v1.0")
+    print("\nMeta-Engineering System v1.0")
     print("=================================")
 
     if args.start_autonomous_mode:
