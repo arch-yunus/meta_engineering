@@ -11,24 +11,17 @@ class CoderAgent(BaseAgent):
 
     def think(self, context: Dict[str, Any]) -> AgentResult:
         """
-        Simulates the thinking process of writing code.
-        In a real scenario, this would call an LLM.
+        Uses the LLM Engine to generate code based on the task.
         """
         task = context.get("task", "")
         
-        # Simple mock logic for demonstration
-        if "add two numbers" in task.lower():
-            code = self._generate_add_function()
-            return AgentResult(
-                payload=code,
-                status="success",
-                metadata={"language": "python"}
-            )
+        prompt = f"Write a Python function for the following task: {task}. Return ONLY the code."
+        code = self.generate_thought(prompt)
         
         return AgentResult(
-            payload=None,
-            status="pending",
-            error="Task not understood or too complex for mock logic."
+            payload=code,
+            status="success",
+            metadata={"language": "python"}
         )
 
     def act(self, action_plan: Any) -> AgentResult:

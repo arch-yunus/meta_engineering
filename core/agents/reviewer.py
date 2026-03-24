@@ -14,7 +14,9 @@ class ReviewerAgent(BaseAgent):
         if not code_to_review:
              return AgentResult(payload=None, status="failure", error="No code to review")
 
-        review_result = self._static_analysis(code_to_review)
+        prompt = f"Review the following Python code for security, performance, and best practices: \n\n{code_to_review}\n\nProvide a concise bulleted review."
+        review_result = self.generate_thought(prompt)
+        
         return AgentResult(
             payload=review_result,
             status="success"

@@ -20,6 +20,12 @@ class BaseAgent(ABC):
         self.name = name
         self.role = role
         self.memory = []  # Short-term local memory
+        from .llm import get_llm_engine
+        self.llm = get_llm_engine()
+        
+    def generate_thought(self, prompt: str, system_message: Optional[str] = None) -> str:
+        """Helper to generate a response from the LLM Engine."""
+        return self.llm.generate(prompt, system_message)
         
     @abstractmethod
     def think(self, context: Dict[str, Any]) -> AgentResult:
@@ -27,7 +33,7 @@ class BaseAgent(ABC):
         Process the input context and determine the next action.
         Represents the cognitive processing step.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def act(self, action_plan: Any) -> AgentResult:
@@ -35,7 +41,7 @@ class BaseAgent(ABC):
         Execute the determined action.
         Represents the motor cortex function.
         """
-        pass
+        raise NotImplementedError
 
     def communicate(self, message: str, channel: str = "general") -> Dict[str, Any]:
         """

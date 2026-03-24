@@ -9,17 +9,13 @@ class ArchitectAgent(BaseAgent):
         super().__init__(name, role="Architect")
 
     def think(self, context: Dict[str, Any]) -> AgentResult:
-        goal = context.get("goal", "")
+        goal = context.get("goal", context.get("intent", ""))
         
-        plan = {
-            "phase_1": "Analyze Requirements",
-            "phase_2": "Draft Solution",
-            "phase_3": "Review and Refine",
-            "original_goal": goal
-        }
+        prompt = f"As an AI Architect, create a structured technical plan for the following goal: {goal}. Return the plan as a JSON-like structure."
+        plan_str = self.generate_thought(prompt)
         
         return AgentResult(
-            payload=plan,
+            payload=plan_str,
             status="success",
             metadata={"type": "high_level_plan"}
         )
