@@ -1,5 +1,9 @@
 from typing import Dict, Any
+import logging
 from .base import BaseAgent, AgentResult
+from ..communication import OmniBus
+
+logger = logging.getLogger("Coder")
 
 class CoderAgent(BaseAgent):
     """
@@ -11,14 +15,30 @@ class CoderAgent(BaseAgent):
         from ..fabrication import get_sandbox
         self.sandbox = get_sandbox()
 
-    def think(self, context: Dict[str, Any]) -> AgentResult:
+    async def initialize(self):
+        bus = OmniBus()
+        bus.subscribe("coding_tasks", self.handle_task)
+        logger.info(f"{self.name} subscribed to 'coding_tasks' channel.")
+
+    async def handle_task(self, message: Dict[str, Any]):
+        task = message.get("task")
+        result = await self.think({"task": task})
+        if result.status == "success":
+            act_res = await self.act(result.payload)
+            await OmniBus().publish("code_review", {
+                "sender": self.name,
+                "content": act_res.payload,
+                "file_path": act_res.metadata.get("file_path")
+            })
+
+    async def think(self, context: Dict[str, Any]) -> AgentResult:
         """
-        Uses the LLM Engine to generate code based on the task.
+        Uses the LLM Engine to generate code based on the task asynchronously.
         """
         task = context.get("task", "")
         
         prompt = f"Write a Python function for the following task: {task}. Return ONLY the code."
-        code = self.generate_thought(prompt)
+        code = await self.generate_thought(prompt)
         
         return AgentResult(
             payload=code,
@@ -26,9 +46,9 @@ class CoderAgent(BaseAgent):
             metadata={"language": "python", "task_name": task.lower().replace(" ", "_")}
         )
 
-    def act(self, action_plan: Any) -> AgentResult:
+    async def act(self, action_plan: Any) -> AgentResult:
         """
-        Execute the writing of code to the sandbox.
+        Execute the writing of code to the sandbox asynchronously.
         """
         code = action_plan
         # For this prototype, we just name it based on timestamp or a simple counter

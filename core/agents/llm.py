@@ -27,21 +27,21 @@ class LLMEngine:
 
         logger.info(f"LLMEngine initialized with backend: {self.backend}")
 
-    def generate(self, prompt: str, system_message: Optional[str] = None) -> str:
-        """Generates a text response based on the prompt."""
+    async def generate(self, prompt: str, system_message: Optional[str] = None) -> str:
+        """Generates a text response based on the prompt asynchronously."""
         if self.backend == "openai":
-            return self._generate_openai(prompt, system_message)
+            return await self._generate_openai(prompt, system_message)
         elif self.backend == "mock":
-            return self._generate_mock(prompt, system_message)
+            return await self._generate_mock(prompt, system_message)
         else:
             return f"Error: Unsupported backend {self.backend}"
 
-    def _generate_openai(self, prompt: str, system_message: Optional[str]) -> str:
+    async def _generate_openai(self, prompt: str, system_message: Optional[str]) -> str:
         # Implementation using LangChain / OpenAI
         # For brevity, we simulate the call here if keys were present
         return f"[OpenAI Simulation] Response to: {prompt[:50]}..."
 
-    def _generate_mock(self, prompt: str, system_message: Optional[str]) -> str:
+    async def _generate_mock(self, prompt: str, system_message: Optional[str]) -> str:
         """
         Sophisticated mock logic that provides realistic strings 
         to maintain system flow during development/testing.

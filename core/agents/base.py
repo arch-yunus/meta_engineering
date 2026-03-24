@@ -25,12 +25,16 @@ class BaseAgent(ABC):
         self.llm = get_llm_engine()
         self.grid = MemoryGrid()
         
-    def generate_thought(self, prompt: str, system_message: Optional[str] = None) -> str:
-        """Helper to generate a response from the LLM Engine."""
-        return self.llm.generate(prompt, system_message)
+    async def generate_thought(self, prompt: str, system_message: Optional[str] = None) -> str:
+        """Helper to generate a response from the LLM Engine asynchronously."""
+        return await self.llm.generate(prompt, system_message)
         
+    async def initialize(self):
+        """Perform asynchronous initialization and channel subscriptions."""
+        pass
+
     @abstractmethod
-    def think(self, context: Dict[str, Any]) -> AgentResult:
+    async def think(self, context: Dict[str, Any]) -> AgentResult:
         """
         Process the input context and determine the next action.
         Represents the cognitive processing step.
@@ -38,7 +42,7 @@ class BaseAgent(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def act(self, action_plan: Any) -> AgentResult:
+    async def act(self, action_plan: Any) -> AgentResult:
         """
         Execute the determined action.
         Represents the motor cortex function.

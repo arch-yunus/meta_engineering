@@ -1,6 +1,10 @@
 from typing import Dict, Any
 import ast
+import logging
 from .base import BaseAgent, AgentResult
+from ..communication import OmniBus
+
+logger = logging.getLogger("Reviewer")
 
 class ReviewerAgent(BaseAgent):
     """
@@ -11,7 +15,24 @@ class ReviewerAgent(BaseAgent):
         from ..fabrication import get_sandbox
         self.sandbox = get_sandbox()
 
-    def think(self, context: Dict[str, Any]) -> AgentResult:
+    async def initialize(self):
+        bus = OmniBus()
+        bus.subscribe("code_review", self.handle_review)
+        logger.info(f"{self.name} subscribed to 'code_review' channel.")
+
+    async def handle_review(self, message: Dict[str, Any]):
+        content = message.get("content") or message.get("code")
+        file_path = message.get("file_path")
+        
+        result = await self.think({"code": content, "file_path": file_path})
+        if result.status == "success":
+            await self.act(result.payload)
+            await OmniBus().publish("reviews", {
+                "sender": self.name,
+                "content": result.payload
+            })
+
+    async def think(self, context: Dict[str, Any]) -> AgentResult:
         file_path = context.get("file_path")
         code_to_review = context.get("code", "")
         
@@ -24,7 +45,7 @@ class ReviewerAgent(BaseAgent):
                 review_result = f"FABRICATION FAILURE: {res['error']}"
         elif code_to_review:
             prompt = f"Review the following Python code for security, performance, and best practices: \n\n{code_to_review}\n\nProvide a concise bulleted review."
-            review_result = self.generate_thought(prompt)
+            review_result = await self.generate_thought(prompt)
         else:
              return AgentResult(payload=None, status="failure", error="No code or file to review")
 
@@ -33,7 +54,7 @@ class ReviewerAgent(BaseAgent):
             status="success"
         )
 
-    def act(self, action_plan: Any) -> AgentResult:
+    async def act(self, action_plan: Any) -> AgentResult:
         return AgentResult(payload=action_plan, status="success")
 
     def _static_analysis(self, code: str) -> str:
